@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aubor Escala - Controle de escala</title>
+    <!-- Fonte Google Inter & FontAwesome para ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="index.css">
+    <!-- <link rel="icon" href="fa-solid fa-calendar-check"> -->
+</head>
+
+<body>
+
+    <!-- Container de Notificações Toast -->
+    <div id="toast-container"></div>
+
+    <!-- TELA 1: LOGIN E CADASTRO -->
+    <section id="auth-screen" class="screen-active">
+        <div class="auth-wrapper">
+            <div class="auth-card">
+                <div class="brand-header">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h1>Aubor Escala</h1>
+                    <p>Gestão Inteligente de Escalas e Turnos</p>
+                </div>
+
+                <!-- Abas de Alternância -->
+                <div class="auth-tabs">
+                    <button id="tab-login-btn" class="tab-btn active" onclick="switchAuthTab('login')">
+                        <i class="fa-solid fa-right-to-bracket"></i> Entrar
+                    </button>
+                    <button id="tab-register-btn" class="tab-btn" onclick="switchAuthTab('register')">
+                        <i class="fa-solid fa-user-plus"></i> Criar Conta
+                    </button>
+                </div>
+
+                <!-- Formulário de Login -->
+                <form id="form-login" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-email"><i class="fa-solid fa-envelope"></i> E-mail</label>
+                        <input type="email" id="login-email" placeholder="seu@email.com" required
+                            value="admin@escala.com">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password"><i class="fa-solid fa-lock"></i> Senha</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required value="admin123">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span>Acessar o Painel</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Formulário de Cadastro -->
+                <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <label for="reg-nome"><i class="fa-solid fa-user"></i> Nome Completo</label>
+                        <input type="text" id="reg-nome" placeholder="Ex: João da Silva" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-email"><i class="fa-solid fa-envelope"></i> E-mail Corporativo</label>
+                        <input type="email" id="reg-email" placeholder="nome@empresa.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password"><i class="fa-solid fa-lock"></i> Criar Senha</label>
+                        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required
+                            minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">
+                        <span>Criar Conta</span> <i class="fa-solid fa-check"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- TELA 2: DASHBOARD E CALENDÁRIO DE ESCALAS -->
+    <section id="app-screen" class="hidden">
+
+        <!-- Barra de Navegação Superior -->
+        <header class="app-header">
+            <div class="header-brand">
+                <i class="fa-solid fa-calendar-check"></i>
+                <h2>Aubor Escala</h2>
+            </div>
+
+            <div class="header-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="Alternar Tema">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+
+                <div class="user-badge">
+                    <div class="avatar" id="user-avatar">A</div>
+                    <div class="user-info">
+                        <span id="user-display-name">Carregando...</span>
+                        <small id="user-display-role" class="badge badge-admin">ADMIN</small>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()" title="Sair do Sistema">
+                    <i class="fa-solid fa-power-off"></i> Sair
+                </button>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="app-main">
+            <!-- Barra de Controles e Filtros -->
+            <div class="controls-card">
+                <div class="filter-box">
+                    <div class="input-group inline">
+                        <label for="filter-date"><i class="fa-solid fa-calendar-day"></i> Data da Escala:</label>
+                        <input type="date" id="filter-date" onchange="loadEscalasPorData()">
+                    </div>
+                    <div class="input-group inline">
+                        <label for="filter-search"><i class="fa-solid fa-magnifying-glass"></i> Buscar:</label>
+                        <input type="text" id="filter-search" placeholder="Nome do funcionário..."
+                            onkeyup="filterEscalasTable()">
+                    </div>
+                    <button class="btn btn-secondary" onclick="resetFilters()">
+                        <i class="fa-solid fa-rotate"></i> Hoje
+                    </button>
+                </div>
+
+                <div class="admin-actions admin-only">
+                    <button class="btn btn-primary" onclick="openModal('modal-escala')">
+                        <i class="fa-solid fa-plus"></i> Nova Escala
+                    </button>
+                    <button class="btn btn-outline" onclick="openModal('modal-funcionarios')">
+                        <i class="fa-solid fa-users"></i> Funcionários
+                    </button>
+                    <button class="btn btn-outline" onclick="openModal('modal-turnos')">
+                        <i class="fa-solid fa-clock"></i> Turnos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard de Resumo Estatístico -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-data">
+                        <h3 id="stat-total-func">0</h3>
+                        <p>Funcionários Ativos</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="stat-data">
+                        <h3 id="stat-total-escalas">0</h3>
+                        <p>Escalas Agendadas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple"><i class="fa-solid fa-business-time"></i></div>
+                    <div class="stat-data">
+                        <h3 id="stat-total-turnos">0</h3>
+                        <p>Turnos Cadastrados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela Principal de Escalas / Calendário -->
+            <div class="calendar-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-calendar-days"></i> Escala de Trabalho do Dia: <span
+                            id="current-date-title">--/--/----</span></h3>
+                    <span class="badge badge-info" id="count-escalas-badge">0 escalas encontradas</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Funcionário</th>
+                                <th>Cargo</th>
+                                <th>Turno</th>
+                                <th>Horário</th>
+                                <th>Status</th>
+                                <th>Observação</th>
+                                <th class="admin-only text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="escalas-tbody">
+                            <!-- Preenchido via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- MODAL: NOVA ESCALA -->
+    <div id="modal-escala" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-calendar-plus"></i> Agendar Escala de Trabalho</h3>
+                <button class="close-btn" onclick="closeModal('modal-escala')">&times;</button>
+            </div>
+            <form onsubmit="handleSalvarEscala(event)">
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="escala-func-id">Funcionário *</label>
+                        <select id="escala-func-id" required>
+                            <!-- Carregado via JS -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="escala-turno-id">Turno *</label>
+                        <select id="escala-turno-id" required>
+                            <!-- Carregado via JS -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="escala-data">Data *</label>
+                        <input type="date" id="escala-data" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="escala-status">Status</label>
+                        <select id="escala-status">
+                            <option value="AGENDADO">AGENDADO</option>
+                            <option value="CONCLUIDO">CONCLUÍDO</option>
+                            <option value="FOLGA">FOLGA</option>
+                            <option value="FALTA">FALTA</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="escala-obs">Observação</label>
+                        <input type="text" id="escala-obs" placeholder="Ex: Substituição ou observações gerais">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-escala')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Escala</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: GESTÃO DE FUNCIONÁRIOS -->
+    <div id="modal-funcionarios" class="modal-overlay hidden">
+        <div class="modal-container modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-users"></i> Gestão de Funcionários</h3>
+                <button class="close-btn" onclick="closeModal('modal-funcionarios')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulário de Cadastro Rápido -->
+                <form id="form-novo-func" onsubmit="handleSalvarFuncionario(event)" class="form-grid">
+                    <input type="text" id="func-nome" placeholder="Nome Completo *" required>
+                    <input type="text" id="func-cargo" placeholder="Cargo (Ex: Operador) *" required>
+                    <input type="text" id="func-cpf" placeholder="CPF (ex: 123.456.789-00) *" required>
+                    <input type="text" id="func-telefone" placeholder="Telefone">
+                    <input type="email" id="func-email" placeholder="E-mail">
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Cadastrar</button>
+                </form>
+
+                <hr class="divider">
+
+                <div class="table-responsive max-h-300">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Cargo</th>
+                                <th>CPF</th>
+                                <th>Telefone</th>
+                                <th class="text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="func-tbody">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GESTÃO DE TURNOS -->
+    <div id="modal-turnos" class="modal-overlay hidden">
+        <div class="modal-container modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock"></i> Gestão de Turnos</h3>
+                <button class="close-btn" onclick="closeModal('modal-turnos')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-novo-turno" onsubmit="handleSalvarTurno(event)" class="form-grid">
+                    <input type="text" id="turno-nome" placeholder="Nome do Turno (Ex: Manhã) *" required>
+                    <input type="time" id="turno-inicio" required title="Hora Início">
+                    <input type="time" id="turno-fim" required title="Hora Fim">
+                    <input type="number" step="0.5" id="turno-duracao" placeholder="Horas (Ex: 8.0)" required>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus"></i> Cadastrar</button>
+                </form>
+
+                <hr class="divider">
+
+                <div class="table-responsive max-h-300">
+                    <table class="data-table compact">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Início</th>
+                                <th>Fim</th>
+                                <th>Duração</th>
+                                <th class="text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="turnos-tbody">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
